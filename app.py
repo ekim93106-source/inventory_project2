@@ -69,3 +69,5 @@ def get_product(barcode):
         return jsonify(data)
 
     return jsonify({"error": "Unable to fetch product"})
+if __name__ == '__main__':
+    app.run(debug=True)
