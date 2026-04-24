@@ -24,12 +24,11 @@ def get_item(item_id):
         if item['id'] == item_id:
             return item
     return {"error": "Item not found"}, 404
-
 @app.route('/inventory', methods=['POST'])
 def add_item():
     new_item = request.get_json()
     inventory.append(new_item)
-    return {"message": "Item added successfully"}
+    return jsonify(new_item), 201
 
 
 @app.route('/inventory/<int:item_id>', methods=['PATCH'])
@@ -50,14 +49,23 @@ def delete_item(item_id):
             return jsonify({"message": "Item deleted successfully"})
     return jsonify({"error": "Item not found"})
 
+@app.route('/inventory/count')
+def count_items():
+    return jsonify({"total_items": len(inventory)})
+
 @app.route('/product/<barcode>', methods=['GET'])
 def get_product(barcode):
     url = f"https://world.openfoodfacts.org/api/v0/product/{barcode}.json"
     response = requests.get(url)
 
     if response.status_code == 200:
-        return jsonify(response.json())
+        data = response.json()
+        inventory.append({
+            "id": len(inventory)+1,
+            "name": data["product"]["product_name"],
+            "price": 0,
+            "stock": 1
+        })
+        return jsonify(data)
 
     return jsonify({"error": "Unable to fetch product"})
-if __name__ == '__main__':
-    app.run(debug=True)
